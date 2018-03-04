@@ -10,11 +10,21 @@ import (
 //go:generate protoc --go_out=. internal.proto
 
 func MarshalItem(item *wtf.Item) ([]byte, error) {
+	created, err := item.Created.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+
+	changed, err := item.Changed.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+
 	return proto.Marshal(&Item{
 		Id:      string(item.ID),
 		Title:   item.Title,
-		Created: item.Created.UnixNano(),
-		Changed: item.Changed.UnixNano(),
+		Created: created,
+		Changed: changed,
 		Checked: item.Checked,
 	})
 }
@@ -27,9 +37,19 @@ func UnmarshalItem(data []byte, item *wtf.Item) error {
 
 	item.ID = wtf.ItemID(pb.GetId())
 	item.Title = pb.GetTitle()
-	item.Created = time.Unix(0, pb.GetCreated()).UTC()
-	item.Changed = time.Unix(0, pb.GetChanged()).UTC()
 	item.Checked = pb.GetChecked()
+
+	created := &time.Time{}
+	if err := created.UnmarshalBinary(pb.GetCreated()); err != nil {
+		return err
+	}
+	item.Created = created.UTC()
+
+	changed := &time.Time{}
+	if err := changed.UnmarshalBinary(pb.GetChanged()); err != nil {
+		return err
+	}
+	item.Changed = changed.UTC()
 
 	return nil
 }
