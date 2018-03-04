@@ -100,5 +100,10 @@ func (s *TodoListService) Remove(item *wtf.Item) error {
 	}
 	defer tx.Rollback()
 
+	b := tx.Bucket([]byte("items"))
+	if err := b.Delete([]byte(item.ID)); err != nil {
+		return err
+	}
+
 	return tx.Commit()
 }
