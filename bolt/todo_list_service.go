@@ -45,26 +45,6 @@ func (s *TodoListService) Add(title string) (*wtf.Item, error) {
 	return item, nil
 }
 
-func (s *TodoListService) Items() ([]wtf.Item, error) {
-	tx, err := s.client.db.Begin(false)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	items := []wtf.Item{}
-	b := tx.Bucket([]byte("items"))
-	err = b.ForEach(func(_ []byte, v []byte) error {
-		item := wtf.Item{}
-		if err := internal.UnmarshalItem(v, &item); err != nil {
-			return err
-		}
-		items = append(items, item)
-		return nil
-	})
-	return items, err
-}
-
 func (s *TodoListService) SetChecked(id wtf.ItemID, checked bool) error {
 	tx, err := s.client.db.Begin(true)
 	if err != nil {
@@ -106,4 +86,24 @@ func (s *TodoListService) Remove(item *wtf.Item) error {
 	}
 
 	return tx.Commit()
+}
+
+func (s *TodoListService) Items() ([]wtf.Item, error) {
+	tx, err := s.client.db.Begin(false)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	items := []wtf.Item{}
+	b := tx.Bucket([]byte("items"))
+	err = b.ForEach(func(_ []byte, v []byte) error {
+		item := wtf.Item{}
+		if err := internal.UnmarshalItem(v, &item); err != nil {
+			return err
+		}
+		items = append(items, item)
+		return nil
+	})
+	return items, err
 }
