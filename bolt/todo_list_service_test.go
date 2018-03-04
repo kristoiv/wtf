@@ -88,12 +88,20 @@ func TestTodoListService_List(t *testing.T) {
 	items, err := s.Items()
 	if err != nil {
 		t.Fatal(err)
-	} else if !reflect.DeepEqual(*item1, items[0]) {
-		t.Fatalf("unexpected item in list: %#v != %#v", items[0], item1)
-	} else if !reflect.DeepEqual(*item2, items[1]) {
-		t.Fatalf("unexpected item in list: %#v != %#v", items[1], item2)
 	} else if len(items) != 2 {
 		t.Fatalf("unexpected number of items in list: %d != 2", len(items))
+	}
+
+	otherItem1 := items[0]
+	otherItem2 := items[1]
+	if item1.ID != otherItem1.ID {
+		otherItem1, otherItem2 = otherItem2, otherItem1
+	}
+
+	if !reflect.DeepEqual(*item1, otherItem1) {
+		t.Fatalf("unexpected item in list: %#v != %#v", otherItem1, item1)
+	} else if !reflect.DeepEqual(*item2, otherItem2) {
+		t.Fatalf("unexpected item in list: %#v != %#v", otherItem2, item2)
 	}
 }
 
