@@ -19,6 +19,6 @@ type Client interface {
 type TodoListService interface {
 	Add(title string) (*Item, error)
 	SetChecked(id ItemID, checked bool) error
-	Remove(item *Item) error
+	Remove(id ItemID) error
 	Items() ([]Item, error)
 }

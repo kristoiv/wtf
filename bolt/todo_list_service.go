@@ -46,6 +46,10 @@ func (s *TodoListService) Add(title string) (*wtf.Item, error) {
 }
 
 func (s *TodoListService) SetChecked(id wtf.ItemID, checked bool) error {
+	if id == "" {
+		return wtf.ErrItemIDRequired
+	}
+
 	tx, err := s.client.db.Begin(true)
 	if err != nil {
 		return err
@@ -73,7 +77,11 @@ func (s *TodoListService) SetChecked(id wtf.ItemID, checked bool) error {
 	return tx.Commit()
 }
 
-func (s *TodoListService) Remove(item *wtf.Item) error {
+func (s *TodoListService) Remove(id wtf.ItemID) error {
+	if id == "" {
+		return wtf.ErrItemIDRequired
+	}
+
 	tx, err := s.client.db.Begin(true)
 	if err != nil {
 		return err
@@ -81,7 +89,9 @@ func (s *TodoListService) Remove(item *wtf.Item) error {
 	defer tx.Rollback()
 
 	b := tx.Bucket([]byte("items"))
-	if err := b.Delete([]byte(item.ID)); err != nil {
+	if data := b.Get([]byte(id)); data == nil {
+		return wtf.ErrItemNotFound
+	} else if err := b.Delete([]byte(id)); err != nil {
 		return err
 	}
 
