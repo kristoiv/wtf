@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package internal;
+
+message Item {
+    string id = 1;
+    string title = 2;
+    int64 created = 3;
+    int64 changed = 4;
+    bool checked = 5;
+}

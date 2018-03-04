@@ -1,9 +1,10 @@
 package wtf
 
 const (
-	ErrItemNotFound   = Error("item not found")
-	ErrItemExists     = Error("item already exists")
-	ErrItemIDRequired = Error("item id required")
+	ErrItemNotFound      = Error("item not found")
+	ErrItemExists        = Error("item already exists")
+	ErrItemTitleRequired = Error("items must have a title")
+	ErrItemIDRequired    = Error("item id required")
 )
 
 type Error string
