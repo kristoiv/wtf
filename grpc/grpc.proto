@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package grpc;
+
+service Grpc {
+    rpc Add(AddRequest) returns (AddReturns) {}
+	rpc SetChecked(SetCheckedRequest) returns (SetCheckedResponse) {}
+	rpc Remove(RemoveRequest) returns (RemoveResponse) {}
+	rpc Items(ItemsRequest) returns (stream ItemStreamReturns) {}
+}
+
+message AddRequest {
+    string title = 1;
+}
+
+message AddReturns {
+    Item item = 1;
+}
+
+message SetCheckedRequest {
+    string id = 1;
+    bool checked = 2;
+}
+
+message SetCheckedResponse {
+}
+
+message RemoveRequest {
+    string id = 1;
+}
+
+message RemoveResponse {
+}
+
+message ItemsRequest {
+    int64 index = 1;
+    int64 count = 2;
+}
+
+message ItemStreamReturns {
+    Item item = 1;
+    int64 index = 2;
+    int64 total = 3;
+}
+
+message Item {
+    string id = 1;
+    string title = 2;
+    bytes created = 3;
+    bytes changed = 4;
+    bool checked = 5;
+}

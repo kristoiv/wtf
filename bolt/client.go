@@ -7,6 +7,8 @@ import (
 	"github.com/kristoiv/wtf"
 )
 
+const DefaultPath = "bolt.db"
+
 type Client struct {
 	Path            string
 	Now             func() time.Time
@@ -15,7 +17,7 @@ type Client struct {
 }
 
 func NewClient() *Client {
-	c := &Client{Now: time.Now}
+	c := &Client{Path: DefaultPath, Now: time.Now}
 	c.todoListService.client = c
 	return c
 }
