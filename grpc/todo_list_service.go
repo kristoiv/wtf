@@ -61,11 +61,6 @@ type TodoListService struct {
 	Addr *string
 }
 
-func NewTodoListService() *TodoListService {
-	h := &TodoListService{}
-	return h
-}
-
 func (s *TodoListService) Add(title string) (*wtf.Item, error) {
 	conn, err := s.dial()
 	if err != nil {

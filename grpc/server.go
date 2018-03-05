@@ -10,8 +10,6 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-//go:generate protoc --go_out=plugins=grpc:. grpc.proto
-
 const DefaultAddr = ":3000"
 
 type Server struct {
