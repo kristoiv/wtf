@@ -5,7 +5,7 @@ import (
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/kristoiv/wtf"
-	"github.com/kristoiv/wtf/bolt/internal"
+	"github.com/kristoiv/wtf/data"
 )
 
 var _ wtf.TodoListService = &TodoListService{}
@@ -32,9 +32,9 @@ func (s *TodoListService) Add(title string) (*wtf.Item, error) {
 	}
 
 	b := tx.Bucket([]byte("items"))
-	if data, err := internal.MarshalItem(item); err != nil {
+	if d, err := data.MarshalItemBytes(item); err != nil {
 		return nil, err
-	} else if err := b.Put([]byte(item.ID), data); err != nil {
+	} else if err := b.Put([]byte(item.ID), d); err != nil {
 		return nil, err
 	}
 
@@ -59,16 +59,16 @@ func (s *TodoListService) SetChecked(id wtf.ItemID, checked bool) error {
 	b := tx.Bucket([]byte("items"))
 
 	item := &wtf.Item{}
-	if data := b.Get([]byte(id)); data == nil {
+	if d := b.Get([]byte(id)); d == nil {
 		return wtf.ErrItemNotFound
-	} else if err := internal.UnmarshalItem(data, item); err != nil {
+	} else if err := data.UnmarshalItemBytes(d, item); err != nil {
 		return err
 	}
 
 	item.Checked = checked
 	item.Changed = time.Now().UTC()
 
-	if data, err := internal.MarshalItem(item); err != nil {
+	if data, err := data.MarshalItemBytes(item); err != nil {
 		return err
 	} else if err := b.Put([]byte(item.ID), data); err != nil {
 		return err
@@ -109,7 +109,7 @@ func (s *TodoListService) Items() ([]wtf.Item, error) {
 	b := tx.Bucket([]byte("items"))
 	err = b.ForEach(func(_ []byte, v []byte) error {
 		item := wtf.Item{}
-		if err := internal.UnmarshalItem(v, &item); err != nil {
+		if err := data.UnmarshalItemBytes(v, &item); err != nil {
 			return err
 		}
 		items = append(items, item)
