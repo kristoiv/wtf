@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	srv := grpc.NewClient()
-	items, err := srv.TodoListService().Items()
+	client := grpc.NewClient()
+	items, err := client.TodoListService().Items()
 	if err != nil {
 		log.Fatalln(err)
 	}

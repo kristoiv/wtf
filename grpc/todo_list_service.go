@@ -57,6 +57,8 @@ func (h *TodoListServiceHandler) Items(r *data.ItemsRequest, s data.Grpc_ItemsSe
 	return nil
 }
 
+var _ wtf.TodoListService = &TodoListService{}
+
 type TodoListService struct {
 	Addr *string
 }
