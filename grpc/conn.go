@@ -5,7 +5,7 @@ import (
 	"net"
 
 	"github.com/kristoiv/wtf"
-	"github.com/kristoiv/wtf/data"
+	"github.com/kristoiv/wtf/grpc/internal"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -33,7 +33,7 @@ func (s *Server) Open() error {
 	go func() {
 		grpcserver := grpc.NewServer()
 		reflection.Register(grpcserver)
-		data.RegisterGrpcServer(grpcserver, s.TodoListServiceHandler)
+		internal.RegisterGrpcServer(grpcserver, s.TodoListServiceHandler)
 		log.Fatalln(grpcserver.Serve(ln))
 	}()
 	return nil
