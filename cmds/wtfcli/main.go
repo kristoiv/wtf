@@ -1,17 +1,15 @@
 package main
 
 import (
-	"log"
-
+	"github.com/kristoiv/wtf"
 	"github.com/kristoiv/wtf/grpc"
 )
 
 func main() {
 	client := grpc.NewClient()
-	items, err := client.TodoListService().Items()
-	if err != nil {
-		log.Fatalln(err)
+	cui := &CUI{
+		TodoListService: client.TodoListService(),
+		items:           []wtf.Item{wtf.Item{Title: "Test 1"}},
 	}
-
-	log.Printf("%#v\n", items)
+	cui.loop()
 }
