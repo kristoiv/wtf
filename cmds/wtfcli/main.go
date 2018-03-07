@@ -7,9 +7,7 @@ import (
 
 func main() {
 	client := grpc.NewClient()
-	cui := &CUI{
-		TodoListService: client.TodoListService(),
-		items:           []wtf.Item{wtf.Item{Title: "Test 1"}},
-	}
+	todoListService := &wtf.TodoListServiceCache{TodoListService: client.TodoListService()}
+	cui := &CUI{TodoListService: todoListService}
 	cui.loop()
 }

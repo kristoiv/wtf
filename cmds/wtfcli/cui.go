@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
-	"code.google.com/p/go-uuid/uuid"
 	"github.com/jroimartin/gocui"
 	"github.com/kristoiv/wtf"
 )
@@ -34,8 +32,9 @@ func (cui *CUI) loop() {
 }
 
 func (cui *CUI) layoutManager(g *gocui.Gui) error {
-	maxX, _ := g.Size()
+	cui.updateItems()
 
+	maxX, _ := g.Size()
 	count := len(cui.items)
 	width := cui.percentageToWidth(0.9, maxX, 80)
 	if count != 0 {
@@ -137,8 +136,8 @@ func (cui *CUI) deleteItem(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	_, idx := v.Cursor()
-	cui.items = append(cui.items[:idx], cui.items[idx+1:]...)
-	if len(cui.items) == 0 {
+	cui.TodoListService.Remove(cui.items[idx].ID)
+	if len(cui.items) == 1 {
 		cui.nextView(g, v)
 	}
 	return nil
@@ -157,11 +156,7 @@ func (cui *CUI) store(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	cui.items = append(cui.items, wtf.Item{
-		ID:      wtf.ItemID(uuid.New()),
-		Title:   line,
-		Created: time.Now().UTC(),
-	})
+	cui.TodoListService.Add(line)
 
 	v.Clear()
 	fmt.Fprint(v, " ")
@@ -216,4 +211,12 @@ func (cui *CUI) percentageToWidth(percentage float64, maxX, maxWidth int) float6
 		return float64(maxWidth)
 	}
 	return out
+}
+
+func (cui *CUI) updateItems() {
+	if items, err := cui.TodoListService.Items(); err != nil {
+		log.Panicln(err)
+	} else {
+		cui.items = items
+	}
 }

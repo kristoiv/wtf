@@ -65,6 +65,11 @@ func TestTodoListService_Remove(t *testing.T) {
 	if err := s.Remove(item.ID); err != nil {
 		t.Fatal(err)
 	}
+
+	items, _ := s.Items()
+	if len(items) != 0 {
+		t.Fatalf("Remove unsuccessful")
+	}
 }
 
 func TestTodoListService_Remove_ErrItemIDRequired(t *testing.T) {
