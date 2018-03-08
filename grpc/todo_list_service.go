@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"io"
+	"log"
 
 	"github.com/kristoiv/wtf"
 	"github.com/kristoiv/wtf/grpc/internal"
@@ -19,6 +20,7 @@ func (h *TodoListServiceHandler) Add(ctx context.Context, r *internal.AddRequest
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("Added todo item %s: %q\n", item.ID, item.Title)
 	retItem, err := internal.MarshalItem(item)
 	if err != nil {
 		return nil, err
@@ -27,6 +29,7 @@ func (h *TodoListServiceHandler) Add(ctx context.Context, r *internal.AddRequest
 }
 
 func (h *TodoListServiceHandler) SetChecked(ctx context.Context, r *internal.SetCheckedRequest) (*internal.SetCheckedResponse, error) {
+	log.Printf("Setting checked on todo item %s to: %t\n", r.GetId(), r.GetChecked())
 	if err := h.TodoListService.SetChecked(wtf.ItemID(r.GetId()), r.GetChecked()); err != nil {
 		return nil, err
 	}
@@ -34,6 +37,7 @@ func (h *TodoListServiceHandler) SetChecked(ctx context.Context, r *internal.Set
 }
 
 func (h *TodoListServiceHandler) Remove(ctx context.Context, r *internal.RemoveRequest) (*internal.RemoveResponse, error) {
+	log.Printf("Removing todo item %s\n", r.GetId())
 	if err := h.TodoListService.Remove(wtf.ItemID(r.GetId())); err != nil {
 		return nil, err
 	}
@@ -41,6 +45,7 @@ func (h *TodoListServiceHandler) Remove(ctx context.Context, r *internal.RemoveR
 }
 
 func (h *TodoListServiceHandler) Items(r *internal.ItemsRequest, s internal.Grpc_ItemsServer) error {
+	log.Println("Listing all items")
 	items, err := h.TodoListService.Items()
 	if err != nil {
 		return err

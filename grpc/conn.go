@@ -30,6 +30,8 @@ func (s *Server) Open() error {
 		return err
 	}
 	s.ln = ln
+
+	log.Printf("Now listening on %s\n", s.Addr)
 	go func() {
 		grpcserver := grpc.NewServer()
 		reflection.Register(grpcserver)
