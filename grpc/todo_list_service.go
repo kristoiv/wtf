@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/kristoiv/wtf"
-	"github.com/kristoiv/wtf/grpc/internal"
+	"github.com/kristoiv/wtf/models"
 
 	"google.golang.org/grpc"
 )
@@ -15,47 +15,47 @@ type TodoListServiceHandler struct {
 	TodoListService wtf.TodoListService
 }
 
-func (h *TodoListServiceHandler) Add(ctx context.Context, r *internal.AddRequest) (*internal.AddReturns, error) {
+func (h *TodoListServiceHandler) Add(ctx context.Context, r *models.AddRequest) (*models.AddReturns, error) {
 	item, err := h.TodoListService.Add(r.GetTitle())
 	if err != nil {
 		return nil, err
 	}
 	log.Printf("Added todo item %s: %q\n", item.ID, item.Title)
-	retItem, err := internal.MarshalItem(item)
+	retItem, err := models.MarshalItem(item)
 	if err != nil {
 		return nil, err
 	}
-	return &internal.AddReturns{Item: retItem}, nil
+	return &models.AddReturns{Item: retItem}, nil
 }
 
-func (h *TodoListServiceHandler) SetChecked(ctx context.Context, r *internal.SetCheckedRequest) (*internal.SetCheckedResponse, error) {
+func (h *TodoListServiceHandler) SetChecked(ctx context.Context, r *models.SetCheckedRequest) (*models.SetCheckedResponse, error) {
 	log.Printf("Setting checked on todo item %s to: %t\n", r.GetId(), r.GetChecked())
 	if err := h.TodoListService.SetChecked(wtf.ItemID(r.GetId()), r.GetChecked()); err != nil {
 		return nil, err
 	}
-	return &internal.SetCheckedResponse{}, nil
+	return &models.SetCheckedResponse{}, nil
 }
 
-func (h *TodoListServiceHandler) Remove(ctx context.Context, r *internal.RemoveRequest) (*internal.RemoveResponse, error) {
+func (h *TodoListServiceHandler) Remove(ctx context.Context, r *models.RemoveRequest) (*models.RemoveResponse, error) {
 	log.Printf("Removing todo item %s\n", r.GetId())
 	if err := h.TodoListService.Remove(wtf.ItemID(r.GetId())); err != nil {
 		return nil, err
 	}
-	return &internal.RemoveResponse{}, nil
+	return &models.RemoveResponse{}, nil
 }
 
-func (h *TodoListServiceHandler) Items(r *internal.ItemsRequest, s internal.Grpc_ItemsServer) error {
+func (h *TodoListServiceHandler) Items(r *models.ItemsRequest, s models.Grpc_ItemsServer) error {
 	log.Println("Listing all items")
 	items, err := h.TodoListService.Items()
 	if err != nil {
 		return err
 	}
 	for _, item := range items {
-		out, err := internal.MarshalItem(&item)
+		out, err := models.MarshalItem(&item)
 		if err != nil {
 			return err
 		}
-		if err := s.Send(&internal.ItemStreamReturns{Item: out}); err != nil {
+		if err := s.Send(&models.ItemStreamReturns{Item: out}); err != nil {
 			return err
 		}
 	}
@@ -74,13 +74,13 @@ func (s *TodoListService) Add(title string) (*wtf.Item, error) {
 	if err != nil {
 		return nil, err
 	}
-	client := internal.NewGrpcClient(conn)
-	res, err := client.Add(context.Background(), &internal.AddRequest{Title: title})
+	client := models.NewGrpcClient(conn)
+	res, err := client.Add(context.Background(), &models.AddRequest{Title: title})
 	if err != nil {
 		return nil, err
 	}
 	item := wtf.Item{}
-	err = internal.UnmarshalItem(res.GetItem(), &item)
+	err = models.UnmarshalItem(res.GetItem(), &item)
 	return &item, err
 }
 
@@ -89,8 +89,8 @@ func (s *TodoListService) SetChecked(id wtf.ItemID, checked bool) error {
 	if err != nil {
 		return err
 	}
-	client := internal.NewGrpcClient(conn)
-	if _, err := client.SetChecked(context.Background(), &internal.SetCheckedRequest{Id: string(id), Checked: checked}); err != nil {
+	client := models.NewGrpcClient(conn)
+	if _, err := client.SetChecked(context.Background(), &models.SetCheckedRequest{Id: string(id), Checked: checked}); err != nil {
 		return err
 	}
 	return nil
@@ -101,8 +101,8 @@ func (s *TodoListService) Remove(id wtf.ItemID) error {
 	if err != nil {
 		return err
 	}
-	client := internal.NewGrpcClient(conn)
-	if _, err := client.Remove(context.Background(), &internal.RemoveRequest{Id: string(id)}); err != nil {
+	client := models.NewGrpcClient(conn)
+	if _, err := client.Remove(context.Background(), &models.RemoveRequest{Id: string(id)}); err != nil {
 		return err
 	}
 	return nil
@@ -114,14 +114,14 @@ func (s *TodoListService) Items() ([]wtf.Item, error) {
 		return nil, err
 	}
 
-	client := internal.NewGrpcClient(conn)
-	stream, err := client.Items(context.Background(), &internal.ItemsRequest{Index: 0, Count: -1})
+	client := models.NewGrpcClient(conn)
+	stream, err := client.Items(context.Background(), &models.ItemsRequest{Index: 0, Count: -1})
 	if err != nil {
 		return nil, err
 	}
 
 	items := []wtf.Item{}
-	var item internal.ItemStreamReturns
+	var item models.ItemStreamReturns
 	for {
 		if err := stream.RecvMsg(&item); err == io.EOF {
 			break
@@ -130,7 +130,7 @@ func (s *TodoListService) Items() ([]wtf.Item, error) {
 		}
 
 		wtfItem := wtf.Item{}
-		if err := internal.UnmarshalItem(item.GetItem(), &wtfItem); err != nil {
+		if err := models.UnmarshalItem(item.GetItem(), &wtfItem); err != nil {
 			return nil, err
 		}
 

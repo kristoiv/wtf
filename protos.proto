@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package internal;
+package models;
 
 service Grpc {
     rpc Add(AddRequest) returns (AddReturns) {}
