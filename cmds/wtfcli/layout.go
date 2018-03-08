@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/jroimartin/gocui"
 )
 
@@ -14,7 +16,7 @@ func (cui *CUI) layoutManager(g *gocui.Gui) error {
 
 	dy := 1
 
-	if len(cui.items) > 0 {
+	if countItems > 0 {
 		if v, err := g.SetView("list", left, dy, right, 2+countItems); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
@@ -33,15 +35,35 @@ func (cui *CUI) layoutManager(g *gocui.Gui) error {
 		if err := cui.drawComposeView(g, v); err != nil {
 			return err
 		}
+
+		if countItems > 0 {
+			g.SetCurrentView("list")
+		} else {
+			g.SetCurrentView("compose")
+		}
 	}
 
 	return nil
 }
 
 func (cui *CUI) drawItemView(g *gocui.Gui, v *gocui.View) error {
+	v.Title = "Todo List"
+	for _, item := range cui.items {
+		fmt.Fprintf(v, "%s (^D=Remove, Space=ToggleChecked)\n", item.Title)
+	}
 	return nil
 }
 
 func (cui *CUI) drawComposeView(g *gocui.Gui, v *gocui.View) error {
+	v.Title = "Compose Todo Item"
+	v.Editable = true
 	return nil
+}
+
+func (cui *CUI) percentageToWidth(percentage float64, maxX, maxWidth int) float64 {
+	out := float64(maxX) * percentage
+	if out > float64(maxWidth) {
+		return float64(maxWidth)
+	}
+	return out
 }

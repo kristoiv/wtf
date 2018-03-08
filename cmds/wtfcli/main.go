@@ -37,11 +37,3 @@ func (cui *CUI) updateItems() {
 		cui.items = items
 	}
 }
-
-func (cui *CUI) percentageToWidth(percentage float64, maxX, maxWidth int) float64 {
-	out := float64(maxX) * percentage
-	if out > float64(maxWidth) {
-		return float64(maxWidth)
-	}
-	return out
-}
