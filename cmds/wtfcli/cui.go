@@ -6,5 +6,5 @@ import (
 
 type CUI struct {
 	TodoListService wtf.TodoListService
-	items           []wtf.Item
+	items           wtf.Items
 }

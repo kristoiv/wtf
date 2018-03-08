@@ -1,6 +1,7 @@
 package bolt
 
 import (
+	"sort"
 	"time"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -105,7 +106,7 @@ func (s *TodoListService) Items() ([]wtf.Item, error) {
 	}
 	defer tx.Rollback()
 
-	items := []wtf.Item{}
+	items := wtf.Items{}
 	b := tx.Bucket([]byte("items"))
 	err = b.ForEach(func(_ []byte, v []byte) error {
 		item := wtf.Item{}
@@ -115,5 +116,7 @@ func (s *TodoListService) Items() ([]wtf.Item, error) {
 		items = append(items, item)
 		return nil
 	})
+
+	sort.Sort(items)
 	return items, err
 }
