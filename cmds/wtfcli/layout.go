@@ -64,7 +64,14 @@ func (cui *CUI) drawItemsView(g *gocui.Gui, v *gocui.View) error {
 		if item.Checked {
 			checked = "X"
 		}
-		fmt.Fprintf(v, " [%s] %s\n", checked, item.Title)
+
+		// Mon Jan 2 15:04:05 -0700 MST 2006
+		format := "Jan 2 15:04"
+		time := "Created: " + item.Created.Local().Format(format)
+		if !item.Changed.IsZero() {
+			time = "Changed: " + item.Changed.Local().Format(format)
+		}
+		fmt.Fprintf(v, " [%s] %s (%s)\n", checked, item.Title, time)
 	}
 	return nil
 }
