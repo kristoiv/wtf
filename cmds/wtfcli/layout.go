@@ -37,6 +37,9 @@ func (cui *CUI) layoutManager(g *gocui.Gui) error {
 			return err
 		}
 		dy += 4
+	} else {
+		g.DeleteView("list")
+		g.DeleteView("list_footer")
 	}
 
 	if v, err := g.SetView("compose", left, dy, right, dy+2); err != nil {
