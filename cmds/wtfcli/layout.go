@@ -12,20 +12,31 @@ func (cui *CUI) layoutManager(g *gocui.Gui) error {
 	left := int(float64(maxX/2) - float64(width/2))
 	right := left + int(width)
 
+	cui.updateItems()
 	countItems := len(cui.items)
 
 	dy := 1
 
 	if countItems > 0 {
-		if v, err := g.SetView("list", left, dy, right, 2+countItems); err != nil {
-			if err != gocui.ErrUnknownView {
-				return err
-			}
-			if err := cui.drawItemView(g, v); err != nil {
-				return err
-			}
+		listView, err := g.SetView("list", left, dy, right, 2+countItems)
+		if err != nil && err != gocui.ErrUnknownView {
+			return err
 		}
-		dy = 2 + countItems + 2
+		listView.Clear()
+		if err := cui.drawItemsView(g, listView); err != nil {
+			return err
+		}
+		dy = 2 + countItems
+
+		listViewFooter, err := g.SetView("list_footer", left, dy, right, dy+2)
+		if err != nil && err != gocui.ErrUnknownView {
+			return err
+		}
+		listViewFooter.Clear()
+		if err := cui.drawItemsFooterView(g, listViewFooter); err != nil {
+			return err
+		}
+		dy += 4
 	}
 
 	if v, err := g.SetView("compose", left, dy, right, dy+2); err != nil {
@@ -46,11 +57,21 @@ func (cui *CUI) layoutManager(g *gocui.Gui) error {
 	return nil
 }
 
-func (cui *CUI) drawItemView(g *gocui.Gui, v *gocui.View) error {
+func (cui *CUI) drawItemsView(g *gocui.Gui, v *gocui.View) error {
 	v.Title = "Todo List"
 	for _, item := range cui.items {
-		fmt.Fprintf(v, "%s (^D=Remove, Space=ToggleChecked)\n", item.Title)
+		checked := "+"
+		if item.Checked {
+			checked = "X"
+		}
+		fmt.Fprintf(v, " [%s] %s\n", checked, item.Title)
 	}
+	return nil
+}
+
+func (cui *CUI) drawItemsFooterView(g *gocui.Gui, v *gocui.View) error {
+	v.Frame = false
+	fmt.Fprintf(v, "(Space=Check/Uncheck item, ^D=Delete)")
 	return nil
 }
 

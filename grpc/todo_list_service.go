@@ -61,6 +61,7 @@ var _ wtf.TodoListService = &TodoListService{}
 
 type TodoListService struct {
 	Addr *string
+	conn *grpc.ClientConn
 }
 
 func (s *TodoListService) Add(title string) (*wtf.Item, error) {
@@ -68,7 +69,6 @@ func (s *TodoListService) Add(title string) (*wtf.Item, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	client := internal.NewGrpcClient(conn)
 	res, err := client.Add(context.Background(), &internal.AddRequest{Title: title})
 	if err != nil {
@@ -84,7 +84,6 @@ func (s *TodoListService) SetChecked(id wtf.ItemID, checked bool) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	client := internal.NewGrpcClient(conn)
 	if _, err := client.SetChecked(context.Background(), &internal.SetCheckedRequest{Id: string(id), Checked: checked}); err != nil {
 		return err
@@ -97,7 +96,6 @@ func (s *TodoListService) Remove(id wtf.ItemID) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	client := internal.NewGrpcClient(conn)
 	if _, err := client.Remove(context.Background(), &internal.RemoveRequest{Id: string(id)}); err != nil {
 		return err
@@ -110,7 +108,6 @@ func (s *TodoListService) Items() ([]wtf.Item, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	client := internal.NewGrpcClient(conn)
 	stream, err := client.Items(context.Background(), &internal.ItemsRequest{Index: 0, Count: -1})
@@ -139,5 +136,12 @@ func (s *TodoListService) Items() ([]wtf.Item, error) {
 }
 
 func (s *TodoListService) dial() (*grpc.ClientConn, error) {
-	return grpc.Dial(*s.Addr, grpc.WithInsecure())
+	if s.conn == nil {
+		conn, err := grpc.Dial(*s.Addr, grpc.WithInsecure())
+		if err != nil {
+			return nil, err
+		}
+		s.conn = conn
+	}
+	return s.conn, nil
 }

@@ -1,104 +1,42 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"strings"
 
 	"github.com/jroimartin/gocui"
-	"github.com/kristoiv/wtf"
 )
 
 func (cui *CUI) setupKeybindings(g *gocui.Gui) {
-	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, cui.quit); err != nil {
+	if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, cui.nextViewAction); err != nil {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, cui.nextView); err != nil {
+	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, cui.quitAction); err != nil {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.KeyArrowDown, gocui.ModNone, cui.cursorDown); err != nil {
+	if err := g.SetKeybinding("list", gocui.KeyArrowUp, gocui.ModNone, cui.cursorUpAction); err != nil {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.KeyArrowUp, gocui.ModNone, cui.cursorUp); err != nil {
+	if err := g.SetKeybinding("list", gocui.KeyArrowDown, gocui.ModNone, cui.cursorDownAction); err != nil {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.KeyCtrlD, gocui.ModNone, cui.deleteItem); err != nil {
+	if err := g.SetKeybinding("list", gocui.KeySpace, gocui.ModNone, cui.itemToggleCheckedAction); err != nil {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.KeySpace, gocui.ModNone, cui.toggleChecked); err != nil {
+	if err := g.SetKeybinding("list", gocui.KeyCtrlD, gocui.ModNone, cui.deleteItemAction); err != nil {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("compose", gocui.KeyEnter, gocui.ModNone, cui.store); err != nil {
+	if err := g.SetKeybinding("compose", gocui.KeyEnter, gocui.ModNone, cui.createItemAction); err != nil {
 		log.Panicln(err)
 	}
-
-	// if err := g.SetKeybinding("compose", gocui.KeyTab, gocui.ModNone, cui.nextView); err != nil {
-	// 	log.Panicln(err)
-	// }
-
-	// if err := g.SetKeybinding("", gocui.KeyEnter, gocui.ModNone, cui.getLine); err != nil {
-	// 	log.Panicln(err)
-	// }
-
-	// if err := g.SetKeybinding("msg", gocui.KeyEnter, gocui.ModNone, cui.delMsg); err != nil {
-	// 	log.Panicln(err)
-	// }
 }
 
-func (cui *CUI) quit(g *gocui.Gui, v *gocui.View) error {
-	return gocui.ErrQuit
-}
-
-func (cui *CUI) toggleChecked(g *gocui.Gui, v *gocui.View) error {
-	_, idx := v.Cursor()
-	item := cui.items[idx]
-	item.Checked = !item.Checked
-	cui.items = append(cui.items[:idx], append([]wtf.Item{item}, cui.items[idx+1:]...)...)
-	return nil
-}
-
-func (cui *CUI) deleteItem(g *gocui.Gui, v *gocui.View) error {
-	if len(cui.items) == 0 {
-		return nil
-	}
-	_, idx := v.Cursor()
-	cui.TodoListService.Remove(cui.items[idx].ID)
-	if len(cui.items) == 1 {
-		cui.nextView(g, v)
-	}
-	return nil
-}
-
-func (cui *CUI) store(g *gocui.Gui, v *gocui.View) error {
-	_, cy := v.Cursor()
-
-	line, err := v.Line(cy)
-	if err != nil {
-		return nil
-	}
-
-	line = strings.TrimPrefix(line, " ")
-	if line == "" {
-		return nil
-	}
-
-	cui.TodoListService.Add(line)
-
-	v.Clear()
-	fmt.Fprint(v, " ")
-	v.SetCursor(1, cy)
-
-	cui.nextView(g, v)
-	return nil
-}
-
-func (cui *CUI) nextView(g *gocui.Gui, v *gocui.View) error {
+func (cui *CUI) nextViewAction(g *gocui.Gui, v *gocui.View) error {
 	if v == nil || v.Name() == "compose" {
 		if _, err := g.View("list"); err == nil {
 			_, err := g.SetCurrentView("list")
@@ -110,7 +48,11 @@ func (cui *CUI) nextView(g *gocui.Gui, v *gocui.View) error {
 	return err
 }
 
-func (cui *CUI) cursorUp(g *gocui.Gui, v *gocui.View) error {
+func (cui *CUI) quitAction(g *gocui.Gui, v *gocui.View) error {
+	return gocui.ErrQuit
+}
+
+func (cui *CUI) cursorUpAction(g *gocui.Gui, v *gocui.View) error {
 	if v != nil {
 		ox, oy := v.Origin()
 		cx, cy := v.Cursor()
@@ -123,16 +65,53 @@ func (cui *CUI) cursorUp(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (cui *CUI) cursorDown(g *gocui.Gui, v *gocui.View) error {
+func (cui *CUI) cursorDownAction(g *gocui.Gui, v *gocui.View) error {
 	if v != nil {
 		ox, oy := v.Origin()
 		cx, cy := v.Cursor()
-		//fmt.Fprintf(os.Stderr, "              %d,%d", oy, cy)
 		if err := v.SetCursor(cx, cy+1); err != nil && cy < len(cui.items)-1 {
 			if err := v.SetOrigin(ox, oy+1); err != nil {
 				return err
 			}
 		}
 	}
+	return nil
+}
+
+func (cui *CUI) itemToggleCheckedAction(g *gocui.Gui, v *gocui.View) error {
+	_, idx := v.Cursor()
+	item := cui.items[idx]
+	cui.TodoListService.SetChecked(item.ID, !item.Checked)
+	return nil
+}
+
+func (cui *CUI) deleteItemAction(g *gocui.Gui, v *gocui.View) error {
+	if len(cui.items) == 0 {
+		return nil
+	}
+	_, idx := v.Cursor()
+	cui.TodoListService.Remove(cui.items[idx].ID)
+	if len(cui.items) == 1 {
+		cui.nextViewAction(g, v)
+	}
+	return nil
+}
+
+func (cui *CUI) createItemAction(g *gocui.Gui, v *gocui.View) error {
+	_, cy := v.Cursor()
+	line, err := v.Line(cy)
+	if err != nil {
+		return nil
+	}
+
+	if line == "" {
+		return nil
+	}
+
+	cui.TodoListService.Add(line)
+
+	v.Clear()
+	v.SetCursor(0, cy)
+	cui.nextViewAction(g, v)
 	return nil
 }
