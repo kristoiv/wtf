@@ -1,55 +1,47 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/jroimartin/gocui"
 )
 
 func (cui *CUI) layoutManager(g *gocui.Gui) error {
-	cui.updateItems()
+	maxX, _ := g.Size()
+	width := cui.percentageToWidth(0.9, maxX, 200)
+	left := int(float64(maxX/2) - float64(width/2))
+	right := left + int(width)
+
+	countItems := len(cui.items)
 
 	dy := 1
-	maxX, _ := g.Size()
-	count := len(cui.items)
-	width := cui.percentageToWidth(0.9, maxX, 80)
-	if count != 0 {
-		if v, err := g.SetView("list", maxX/2-int(width/2), dy, maxX/2+int(width/2), 2+count); err != nil {
+
+	if len(cui.items) > 0 {
+		if v, err := g.SetView("list", left, dy, right, 2+countItems); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
-		} else {
-			v.Clear()
-			if len(cui.items) == 0 {
-				v.Frame = false
-			} else {
-				v.Frame = true
-			}
-
-			v.Title = "TODOs"
-			// v.Highlight = true
-			//v.Wrap = true
-			v.SelBgColor = gocui.ColorGreen
-			v.SelFgColor = gocui.ColorBlack
-			for _, item := range cui.items {
-				fmt.Fprintf(v, "%s (^D=Delete)\n", item.Title)
+			if err := cui.drawItemView(g, v); err != nil {
+				return err
 			}
 		}
-		dy = 2 + count + 2
-	} else {
-		g.DeleteView("list")
+		dy = 2 + countItems + 2
 	}
 
-	if v, err := g.SetView("compose", maxX/2-int(width/2), dy, maxX/2+int(width/2), 2+count+4); err != nil {
+	if v, err := g.SetView("compose", left, dy, right, dy+2); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Compose new item"
-		v.Editable = true
-		v.Wrap = true
-		fmt.Fprint(v, " ")
-		v.SetCursor(1, 0)
+		if err := cui.drawComposeView(g, v); err != nil {
+			return err
+		}
 	}
 
+	return nil
+}
+
+func (cui *CUI) drawItemView(g *gocui.Gui, v *gocui.View) error {
+	return nil
+}
+
+func (cui *CUI) drawComposeView(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
