@@ -52,6 +52,8 @@ func (s *Server) Port() int {
 	return s.ln.Addr().(*net.TCPAddr).Port
 }
 
+var _ wtf.Client = &Client{}
+
 type Client struct {
 	Addr            string
 	todoListService TodoListService
@@ -63,6 +65,20 @@ func NewClient() *Client {
 	}
 	c.todoListService.Addr = &c.Addr
 	return c
+}
+
+func (c *Client) Open() error {
+	_, err := c.todoListService.dial()
+	return err
+}
+
+func (c *Client) Close() error {
+	conn, err := c.todoListService.dial()
+	if err != nil {
+		return err
+	}
+
+	return conn.Close()
 }
 
 func (c *Client) TodoListService() wtf.TodoListService {

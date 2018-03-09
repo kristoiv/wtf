@@ -9,6 +9,8 @@ import (
 
 const DefaultPath = "bolt.db"
 
+var _ wtf.Client = &Client{}
+
 type Client struct {
 	Path            string
 	Now             func() time.Time
