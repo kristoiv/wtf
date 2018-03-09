@@ -37,14 +37,8 @@ func (c *Client) Open() error {
 	}
 	defer tx.Rollback()
 
-	if tx.Bucket([]byte("items")) == nil {
-		if _, err := tx.CreateBucketIfNotExists([]byte("items")); err != nil {
-			return err
-		} else {
-			// item := wtf.Item{ID: wtf.ItemID(uuid.New()), Title: "Test", Created: time.Now().UTC()}
-			// buf, _ := data.MarshalItemBytes(&item)
-			// b.Put([]byte(item.ID), buf)
-		}
+	if _, err := tx.CreateBucketIfNotExists([]byte("items")); err != nil {
+		return err
 	}
 
 	return tx.Commit()
