@@ -6,7 +6,7 @@ import (
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/kristoiv/wtf"
-	"github.com/kristoiv/wtf/models"
+	"github.com/kristoiv/wtf/bolt/internal"
 )
 
 var _ wtf.TodoListService = &TodoListService{}
@@ -33,7 +33,7 @@ func (s *TodoListService) Add(title string) (*wtf.Item, error) {
 	}
 
 	b := tx.Bucket([]byte("items"))
-	if d, err := models.MarshalItemBytes(item); err != nil {
+	if d, err := internal.MarshalItem(item); err != nil {
 		return nil, err
 	} else if err := b.Put([]byte(item.ID), d); err != nil {
 		return nil, err
@@ -62,14 +62,14 @@ func (s *TodoListService) SetChecked(id wtf.ItemID, checked bool) error {
 	item := &wtf.Item{}
 	if d := b.Get([]byte(id)); d == nil {
 		return wtf.ErrItemNotFound
-	} else if err := models.UnmarshalItemBytes(d, item); err != nil {
+	} else if err := internal.UnmarshalItem(d, item); err != nil {
 		return err
 	}
 
 	item.Checked = checked
 	item.Changed = time.Now().UTC()
 
-	if data, err := models.MarshalItemBytes(item); err != nil {
+	if data, err := internal.MarshalItem(item); err != nil {
 		return err
 	} else if err := b.Put([]byte(item.ID), data); err != nil {
 		return err
@@ -110,7 +110,7 @@ func (s *TodoListService) Items() ([]wtf.Item, error) {
 	b := tx.Bucket([]byte("items"))
 	err = b.ForEach(func(_ []byte, v []byte) error {
 		item := wtf.Item{}
-		if err := models.UnmarshalItemBytes(v, &item); err != nil {
+		if err := internal.UnmarshalItem(v, &item); err != nil {
 			return err
 		}
 		items = append(items, item)

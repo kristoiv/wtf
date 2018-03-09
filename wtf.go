@@ -19,6 +19,8 @@ func (item Items) Swap(i, j int)      { item[i], item[j] = item[j], item[i] }
 func (item Items) Less(i, j int) bool { return item[i].Created.Before(item[j].Created) }
 
 type Client interface {
+	Open() error
+	Close() error
 	TodoListService() TodoListService
 }
 
