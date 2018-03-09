@@ -78,7 +78,9 @@ func (c *Client) Close() error {
 		return err
 	}
 
-	return conn.Close()
+	err = conn.Close()
+	c.todoListService.conn = nil
+	return err
 }
 
 func (c *Client) TodoListService() wtf.TodoListService {
