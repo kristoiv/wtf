@@ -20,7 +20,7 @@ func MarshalItem(item *wtf.Item) ([]byte, error) {
 		return nil, err
 	}
 
-	return proto.Marshal(&Item{
+	return proto.Marshal(&TodoItem{
 		Id:      string(item.ID),
 		Title:   item.Title,
 		Created: created,
@@ -30,7 +30,7 @@ func MarshalItem(item *wtf.Item) ([]byte, error) {
 }
 
 func UnmarshalItem(data []byte, item *wtf.Item) error {
-	pb := Item{}
+	pb := TodoItem{}
 	if err := proto.Unmarshal(data, &pb); err != nil {
 		return err
 	}

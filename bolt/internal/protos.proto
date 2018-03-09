@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package internal;
 
-message Item {
+message TodoItem {
     string id = 1;
     string title = 2;
     bytes created = 3;
