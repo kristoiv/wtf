@@ -7,7 +7,7 @@ import (
 	"github.com/kristoiv/wtf/grpc"
 )
 
-func TestConn(t *testing.T) {
+func TestTodoListService_Add(t *testing.T) {
 	client := grpc.NewClient()
 	if err := client.Open(); err != nil {
 		t.Fatalf("unexpected error in dialing non-existent grpc server: %s", err)
