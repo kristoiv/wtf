@@ -34,6 +34,15 @@ func (cui *CUI) updateItems() {
 	if items, err := cui.TodoListService.Items(); err != nil {
 		log.Panicln(err)
 	} else {
-		cui.items = items
+		checked := []wtf.Item{}
+		unchecked := []wtf.Item{}
+		for _, item := range items {
+			if item.Checked {
+				checked = append(checked, item)
+			} else {
+				unchecked = append(unchecked, item)
+			}
+		}
+		cui.items = append(checked, unchecked...)
 	}
 }
